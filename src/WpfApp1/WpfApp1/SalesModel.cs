@@ -9,7 +9,5 @@ namespace WpfApp1
    public class SalesModel
     {
         public string flow_no { get; set; }
-        //
-   
     }
 }

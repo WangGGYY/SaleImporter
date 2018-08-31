@@ -20,6 +20,7 @@ using System.IO;
 using System.Reflection;
 using System.Configuration;
 using System.Threading;
+using WpfApp1.Properties;
 
 namespace WpfApp1
 {
@@ -86,7 +87,7 @@ namespace WpfApp1
                 com_no.Save();
             }
             ConfigurationManager.RefreshSection("appSettings");
-            DataTable payflow = obtain("select t_rm_payflow.pay_way,sell_way,com_no,t_rm_payflow.flow_no,t_rm_payflow.sale_man,t_rm_payflow.vip_no,t_rm_payflow.pay_amount  from  t_rm_payflow where com_no > " + ConfigurationManager.AppSettings["com_no"]);
+            DataTable payflow = Obtain("select t_rm_payflow.pay_way,sell_way,com_no,t_rm_payflow.flow_no,t_rm_payflow.sale_man,t_rm_payflow.vip_no,t_rm_payflow.pay_amount  from  t_rm_payflow where com_no > " + ConfigurationManager.AppSettings["com_no"]);
             //去重
             for (int i = payflow.Rows.Count - 2; i > 0; i--)
             {
@@ -113,7 +114,7 @@ namespace WpfApp1
                 return;
             }
             //查询流水表
-            DataTable saleflow = obtain("select posid, flow_no,sell_way,sale_qnty, CONVERT(varchar(100), t_rm_saleflow.oper_date, 112) as oper_day,Datename(hour,t_rm_saleflow.oper_date)+Datename(minute,t_rm_saleflow.oper_date)+Datename(second,t_rm_saleflow.oper_date) as oper_time, t_rm_saleflow.oper_id, t_rm_saleflow.sale_qnty, t_rm_saleflow.sale_money,t_rm_saleflow.item_no, (source_price - sale_price) * sale_qnty as salequt,t_rm_saleflow.sale_money from t_rm_saleflow where flow_no in (" + strS + ") ");
+            DataTable saleflow = Obtain("select posid, flow_no,sell_way,sale_qnty, CONVERT(varchar(100), t_rm_saleflow.oper_date, 112) as oper_day,Datename(hour,t_rm_saleflow.oper_date)+Datename(minute,t_rm_saleflow.oper_date)+Datename(second,t_rm_saleflow.oper_date) as oper_time, t_rm_saleflow.oper_id, t_rm_saleflow.sale_qnty, t_rm_saleflow.sale_money,t_rm_saleflow.item_no, (source_price - sale_price) * sale_qnty as salequt,t_rm_saleflow.sale_money from t_rm_saleflow where flow_no in (" + strS + ") ");
 
             List<SalesModel> list = new List<SalesModel>();
 
@@ -229,7 +230,8 @@ namespace WpfApp1
 
                                 }
                                 //保存日志
-                                Save(@"C:\Users\Maibenben\Desktop\WpfApp1\WpfApp1\Log\daochu.txt",code.ToString(),str, reader1["flow_no"].ToString());
+                                //Save(@"C:\Users\Maibenben\Desktop\WpfApp1\WpfApp1\Log\daochu.txt", code.ToString(), str, reader1["flow_no"].ToString());
+                                Save(@"daochu.txt", code.ToString(), str, reader1["flow_no"].ToString());
                             }
                         }
                         catch (Exception ex)
@@ -271,9 +273,9 @@ namespace WpfApp1
             return ts;
         }
         //获取数据
-        public DataTable obtain(string sql)
+        public DataTable Obtain(string sql)
         {
-            string con = "data source=NUWIN;initial catalog=hbposv8;uid=sa;pwd=nuwin;";
+            string con = Settings.Default.DbConnStr;// "data source=NUWIN;initial catalog=hbposv8;uid=sa;pwd=nuwin;";
 
             SqlConnection mycon = new SqlConnection(con);
             mycon.Open();
@@ -285,23 +287,25 @@ namespace WpfApp1
             return dt;
         }
 
-        public void Save(string Url,string code, string str,string flow_no)
+        public void Save(string path, string code, string str, string flowNo)
         {
-            FileStream fs = new FileStream(@""+Url+"", FileMode.Append, FileAccess.Write);
-            StreamWriter m_streamWriter = new StreamWriter(fs);
-            m_streamWriter.Flush();
-            //设置当前流的位置
-            //m_streamWriter.BaseStream.Seek(0, SeekOrigin.Begin);
-            //写入内容
-            m_streamWriter.Write("Code:" + code);
+            //FileStream fs = new FileStream(url, FileMode.Append, FileAccess.Write);
+            using (StreamWriter streamWriter = new StreamWriter(path))
+            {
+                //streamWriter.Flush();
+                //设置当前流的位置
+                //m_streamWriter.BaseStream.Seek(0, SeekOrigin.Begin);
+                //写入内容
+                streamWriter.Write("Code:" + code);
 
-            m_streamWriter.Write("\r\n");//换行
-            m_streamWriter.Write("信息：" + str);
-            m_streamWriter.Write("\r\n");//换行
-            m_streamWriter.Write("flow_no:" + flow_no);
-            //关闭此文件
-            m_streamWriter.Flush();
-            m_streamWriter.Close();
+                streamWriter.Write("\r\n");//换行
+                streamWriter.Write("信息：" + str);
+                streamWriter.Write("\r\n");//换行
+                streamWriter.Write("flow_no:" + flowNo);
+                //关闭此文件
+            }
+            //streamWriter.Flush();
+            //streamWriter.Close();
         }
     }
 }

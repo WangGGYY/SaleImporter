@@ -120,53 +120,53 @@ namespace WpfApp1
 
             list = ConvertToModel(saleflow);
 
-            foreach (DataRow itemp in payflow.Rows)
+            foreach (DataRow payRow in payflow.Rows)
             {
-                foreach (DataRow reader1 in saleflow.Rows)
+                foreach (DataRow saleRow in saleflow.Rows)
                 {
-                    if (itemp["flow_no"].ToString() == reader1["flow_no"].ToString() && reader1["sell_way"].ToString() != "C")
+                    if (payRow["flow_no"].ToString() == saleRow["flow_no"].ToString() && saleRow["sell_way"].ToString() != "C")
                     {
                         esaleshdr sales = new esaleshdr();
                         esalesitem items = new esalesitem();
                         sales.mallid = scbh.Text;//商场编号
-                        sales.txdate_yyyymmdd = reader1["oper_day"].ToString();
+                        sales.txdate_yyyymmdd = saleRow["oper_day"].ToString();
 
-                        sales.txtime_hhmmss = reader1["oper_time"].ToString();
+                        sales.txtime_hhmmss = saleRow["oper_time"].ToString();
                         sales.storecode = ConfigurationManager.AppSettings["storecode"].ToString();
-                        if (reader1["posid"].ToString() == "")
+                        if (saleRow["posid"].ToString() == "")
                         {
                             sales.tillid = "01";//?
                         }
                         else
                         {
-                            sales.tillid = reader1["posid"].ToString();//?
+                            sales.tillid = saleRow["posid"].ToString();//?
                         }
-                        sales.txdocno = itemp["flow_no"].ToString();
-                        sales.cashier = reader1["oper_id"].ToString();
-                        sales.vipcode = itemp["vip_no"].ToString();
-                        sales.salesman = itemp["sale_man"].ToString();
-                        string flow_no = itemp["flow_no"].ToString();
+                        sales.txdocno = payRow["flow_no"].ToString();
+                        sales.cashier = saleRow["oper_id"].ToString();
+                        sales.vipcode = payRow["vip_no"].ToString();
+                        sales.salesman = payRow["sale_man"].ToString();
+                        string flow_no = payRow["flow_no"].ToString();
                         decimal net = list.Where(u => u.flow_no == flow_no).Count();
 
-                        if (reader1["sell_way"].ToString() == "A")
+                        if (saleRow["sell_way"].ToString() == "A")
                         {
                             //总数量
                             sales.netqty = net;
                             //总金额 
-                            sales.netamount = Convert.ToInt32(itemp["pay_amount"]);
-                            items.qty = Convert.ToInt32(reader1["sale_qnty"]);
-                            items.netamount = Convert.ToInt32(reader1["salequt"]);
+                            sales.netamount = Convert.ToInt32(payRow["pay_amount"]);
+                            items.qty = Convert.ToInt32(saleRow["sale_qnty"]);
+                            items.netamount = Convert.ToInt32(saleRow["salequt"]);
                         }
-                        else if (reader1["sell_way"].ToString() == "B")
+                        else if (saleRow["sell_way"].ToString() == "B")
                         {
                             sales.netqty = net;
-                            sales.netamount = -Convert.ToInt32(reader1["sale_money"]);
-                            items.qty = -Convert.ToInt32(reader1["sale_qnty"]);
-                            items.netamount = -Convert.ToInt32(reader1["salequt"]);
+                            sales.netamount = -Convert.ToInt32(saleRow["sale_money"]);
+                            items.qty = -Convert.ToInt32(saleRow["sale_qnty"]);
+                            items.netamount = -Convert.ToInt32(saleRow["salequt"]);
                         }
 
                         sales.extendparam = "";
-                        items.itemcode = "01L501N011";
+                        items.itemcode = ConfigurationManager.AppSettings["item_no"].ToString(); ; //"01L501N011";
                         items.bonusearn = 0;
                         items.discountamount = 0;
                         items.extendparam = "";
@@ -177,8 +177,8 @@ namespace WpfApp1
 
                         esalestender esals = new esalestender();
                         esals.tendercode = "CH";
-                        esals.payamount = Convert.ToInt32(itemp["pay_amount"]);
-                        esals.baseamount = Convert.ToInt32(itemp["pay_amount"]);
+                        esals.payamount = Convert.ToInt32(payRow["pay_amount"]);
+                        esals.baseamount = Convert.ToInt32(payRow["pay_amount"]);
                         esals.excessamount = 0;
                         esals.extendparam = "";
                         esals.remark = "";
@@ -210,9 +210,8 @@ namespace WpfApp1
                             string str = respone.header.responsemessage;
 
                             if (code != 0)
-                            {
-                                //保存日志
-                                Save(@"C:\Users\Maibenben\Desktop\WpfApp1\WpfApp1\Log\log.txt", code.ToString(), str, reader1["flow_no"].ToString());
+                            { //保存日志
+                                Save(@"log.txt", code.ToString(), str, saleRow["flow_no"].ToString());
                             }
                             else
                             {
@@ -230,13 +229,13 @@ namespace WpfApp1
 
                                 }
                                 //保存日志
-                                //Save(@"C:\Users\Maibenben\Desktop\WpfApp1\WpfApp1\Log\daochu.txt", code.ToString(), str, reader1["flow_no"].ToString());
-                                Save(@"daochu.txt", code.ToString(), str, reader1["flow_no"].ToString());
+                                Save(@"daochu.txt", code.ToString(), str, saleRow["flow_no"].ToString());
                             }
                         }
                         catch (Exception ex)
                         {
-                            if (ex.ToString().Contains("没有终结点在侦听可以接受消息的 http://202.105.118.99:8090/TTPOS/sales.asmx"))
+                            //判断是否是网络问题 是休息一分钟后继续执行
+                            if (ex.ToString().Contains("没有终结点在侦听可以接受消息"))
                             {
                                 Thread.Sleep(60000);//一分钟
                                 Send(sender, e);
@@ -250,13 +249,13 @@ namespace WpfApp1
         public static List<SalesModel> ConvertToModel(DataTable dt)
         {
 
-            List<SalesModel> ts = new List<SalesModel>();// 定义集合
+            List<SalesModel> salesList = new List<SalesModel>();// 定义集合
             Type type = typeof(SalesModel); // 获得此模型的类型
             string tempName = "";
             foreach (DataRow dr in dt.Rows)
             {
-                SalesModel t = new SalesModel();
-                PropertyInfo[] propertys = t.GetType().GetProperties();// 获得此模型的公共属性
+                SalesModel smodel = new SalesModel();
+                PropertyInfo[] propertys = smodel.GetType().GetProperties();// 获得此模型的公共属性
                 foreach (PropertyInfo pi in propertys)
                 {
                     tempName = pi.Name;
@@ -265,12 +264,12 @@ namespace WpfApp1
                         if (!pi.CanWrite) continue;
                         object value = dr[tempName];
                         if (value != DBNull.Value)
-                            pi.SetValue(t, value, null);
+                            pi.SetValue(smodel, value, null);
                     }
                 }
-                ts.Add(t);
+                salesList.Add(smodel);
             }
-            return ts;
+            return salesList;
         }
         //获取数据
         public DataTable Obtain(string sql)
@@ -289,23 +288,18 @@ namespace WpfApp1
 
         public void Save(string path, string code, string str, string flowNo)
         {
-            //FileStream fs = new FileStream(url, FileMode.Append, FileAccess.Write);
-            using (StreamWriter streamWriter = new StreamWriter(path))
+            using (var fs = new FileStream(path, FileMode.Append))
+            using (StreamWriter streamWriter = new StreamWriter(fs))
             {
-                //streamWriter.Flush();
-                //设置当前流的位置
-                //m_streamWriter.BaseStream.Seek(0, SeekOrigin.Begin);
+                streamWriter.Write("\r\n");//换行
                 //写入内容
                 streamWriter.Write("Code:" + code);
-
                 streamWriter.Write("\r\n");//换行
                 streamWriter.Write("信息：" + str);
                 streamWriter.Write("\r\n");//换行
                 streamWriter.Write("flow_no:" + flowNo);
                 //关闭此文件
             }
-            //streamWriter.Flush();
-            //streamWriter.Close();
         }
     }
 }

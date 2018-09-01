@@ -6,24 +6,22 @@
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
         Title="MainWindow" Height="538.034" Width="1019.691">
-    <Grid Margin="0,-22,1.2,29.8" Background="Blue" HorizontalAlignment="Right" Width="1019">
+    <Grid Margin="-3,-24,-4,32" Background="Blue" HorizontalAlignment="Right" Width="1019">
         <Grid.RowDefinitions>
             <RowDefinition Height="88*"/>
             <RowDefinition Height="115*"/>
             <RowDefinition Height="298*"/>
         </Grid.RowDefinitions>
-        <Button Content="确定" FontSize="20px" HorizontalAlignment="Left" Margin="441,190.6,0,0" VerticalAlignment="Top" Width="135" Height="42" Click="Button_Click" Grid.Row="2"/>
+        <Button Content="确定" FontSize="20px" HorizontalAlignment="Left" Margin="441,190.6,0,0" VerticalAlignment="Top" Width="135" Height="42" Click="Button_Click" Grid.Row="2" Foreground="Black"/>
         <TextBox HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="42" Margin="131,72.2,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="165" Name="xkzs" Grid.Row="1" />
-        <Label Content="许可证书:" HorizontalAlignment="Left" Margin="10,78.2,0,4.4" FontSize="20px" Width="135" Grid.Row="1"/>
+        <Label Content="许可证书：" HorizontalAlignment="Left" Margin="10,72,0,6" FontSize="20px" Width="135" Grid.Row="1" Foreground="#FFF4F4F4"/>
         <TextBox HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="42" Margin="463,72.2,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="165" Name="yhm" Grid.Row="1"/>
-        <Label Content="用户名:" HorizontalAlignment="Left" Margin="365,78.2,0,4.4" FontSize="20px" Width="135" Grid.Row="1"/>
         <PasswordBox  Margin="781,72,73,0" Height="42" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" PasswordChar="*" VerticalAlignment="Top" Width="165" Name="mm" Grid.Row="1"/>
-        <Label Content="密码:" HorizontalAlignment="Left" Margin="702,78,0,4.2" FontSize="20px" Width="55" Grid.Row="1"/>
+        <Label Content="密码：" HorizontalAlignment="Left" Margin="702,78,0,4.2" FontSize="20px" Width="55" Grid.Row="1" Foreground="#FFF4F4F4"/>
         <TextBox HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="42" Margin="131,47.6,0,0" TextWrapping="Wrap" Text="01" VerticalAlignment="Top" Width="165" x:Name="scbh" Grid.Row="2" />
-        <Label Content="商场编号:" HorizontalAlignment="Left" Margin="10,53.8,0,207.8" FontSize="20px" Width="135" Grid.Row="2" />
-        <Label Content="用户名:" HorizontalAlignment="Left" Margin="365,78.2,0,4.4" FontSize="20px" Width="135" Grid.Row="1"/>
-        <Label Content="店铺号:" HorizontalAlignment="Left" Margin="365,51.8,0,207.8" FontSize="20px" Width="135" Grid.Row="2"/>
+        <Label Content="商场编号:" HorizontalAlignment="Left" Margin="10,53.8,0,207.8" FontSize="20px" Width="135" Grid.Row="2" Foreground="#FFF4F4F4" />
+        <Label Content="用户名：" HorizontalAlignment="Left" Margin="365,72,0,4" FontSize="20px" Width="135" Grid.Row="1" Foreground="#FFF4F4F4"/>
+        <Label Content="店铺号：" HorizontalAlignment="Left" Margin="365,51.8,0,207.8" FontSize="20px" Width="135" Grid.Row="2" Foreground="#FFF4F4F4"/>
         <TextBox HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="42" Margin="463,45.8,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="165" x:Name="dph" Grid.Row="2" />
-
     </Grid>
 </Window>

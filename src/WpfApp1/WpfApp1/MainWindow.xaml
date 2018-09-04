@@ -20,11 +20,11 @@
                 <TextBlock Grid.Row="0" Grid.Column="0"  FontSize="22" ><Run/><LineBreak/><Run Text="服务器地址："/></TextBlock>
                 <TextBlock Grid.Row="1" Margin="0,25,210,-65" Grid.ColumnSpan="2" ><Run Text="数据库名称：" FontSize="22"/></TextBlock>
                 <TextBlock Grid.Row="1" Margin="43,93,170,-133" Grid.ColumnSpan="2" ><Run Text="用户名："  FontSize="22"/></TextBlock>
-                <TextBox x:Name="sjkyhm" Grid.Row="1"   Width="150" FontSize="26" Margin="23,93,50,-133" Grid.Column="1" />
+                <TextBox x:Name="sjkyhm" Grid.Row="1" TextAlignment="Center"  FontSize="18"  Width="150" Margin="23,93,50,-133" Grid.Column="1" />
                 <TextBlock Grid.Row="1" Margin="256,94,-178,-134" Grid.Column="1" ><Run Text="密码："  FontSize="22"/></TextBlock>
-                <PasswordBox Grid.Column="1" Name="sjkmm"  Margin="362,94,-303,-134" Grid.Row="1" RenderTransformOrigin="0.08,0.375" />
-                <TextBox Grid.Column="1" x:Name="sjkmc"  Margin="23,25,-55,-65" Grid.Row="1" RenderTransformOrigin="0.08,0.375" />
-                <TextBox Grid.Column="1" x:Name="fwqdz"  Margin="23,18,-55,0" RenderTransformOrigin="0.08,0.375" />
+                <PasswordBox Grid.Column="1" Name="sjkmm"    FontSize="18" Margin="362,94,-303,-134" Grid.Row="1" RenderTransformOrigin="0.08,0.375" />
+                <TextBox Grid.Column="1" x:Name="sjkmc" TextAlignment="Center"  FontSize="18" Margin="23,25,-55,-65" Grid.Row="1" RenderTransformOrigin="0.08,0.375" />
+                <TextBox Grid.Column="1" x:Name="fwqdz" TextAlignment="Center"   FontSize="18" Margin="23,18,-55,0" RenderTransformOrigin="0.08,0.375" />
             </Grid>
         </GroupBox>
         <GroupBox Header="上传配置"  FontSize="22" HorizontalAlignment="Left" Height="310" Margin="11,310,0,0" VerticalAlignment="Top" Foreground="#FFF4F4F4" Width="710">
@@ -38,19 +38,19 @@
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
                 <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,24,0,-44"  FontSize="22">许可证书：</TextBlock>
-                <TextBox x:Name="xkzs" Grid.Row="1" Grid.Column="1"  Width="150" FontSize="26" Margin="11,14,37,-34" Grid.RowSpan="1" />
-                <TextBlock Grid.Row="1" Margin="23,90,165,-110" Grid.ColumnSpan="2" ><Run Text="用户帐号："  FontSize="22"/></TextBlock>
-                <TextBox Grid.Row="1" Grid.Column="1" Name="yhzh"   Width="150" FontSize="26" Margin="12,83,36,-103" Grid.RowSpan="1" />
+                <TextBox x:Name="xkzs" Grid.Row="1" Grid.Column="1" TextAlignment="Center"  Width="150" FontSize="18" Margin="11,14,37,-34" Grid.RowSpan="1" />
+                <TextBlock Grid.Row="1" Margin="0,83,188,-103" Grid.ColumnSpan="2" ><Run Text="用户帐号："  FontSize="22"/></TextBlock>
+                <TextBox Grid.Row="1" Grid.Column="1" Name="yhzh"   Width="150" TextAlignment="Center" FontSize="18" Margin="12,83,36,-103" Grid.RowSpan="1" />
                 <TextBlock Grid.Row="1" Grid.Column="1" Margin="284,80,-196,-100" ><Run Text="密码："  FontSize="22"/></TextBlock>
                 <TextBlock Grid.Row="1" Grid.Column="1" Margin="240,19,-162,-39" ><Run Text="商场编号："  FontSize="22"/></TextBlock>
-                <TextBox Grid.Row="1" Grid.Column="1" Name="scbh" FontSize="26" Margin="395,7,-357,-27" Grid.RowSpan="1" RenderTransformOrigin="0.527,-2.75" />
+                <TextBox Grid.Row="1" Grid.Column="1" Name="scbh" FontSize="18" TextAlignment="Center" Margin="395,7,-357,-27" Grid.RowSpan="1" RenderTransformOrigin="0.527,-2.75" />
                 <TextBlock Grid.Row="1" Grid.Column="0" Margin="21,156,177,-176" Grid.ColumnSpan="2" ><Run Text="店铺号："  FontSize="22"/></TextBlock>
-                <TextBox Grid.Row="1" Grid.Column="1" Name="dph"  Width="150" FontSize="26" Margin="12,153,36,-173" Grid.RowSpan="1" />
+                <TextBox Grid.Row="1" Grid.Column="1" Name="dph"  Width="150" TextAlignment="Center" FontSize="18" Margin="12,153,36,-173" Grid.RowSpan="1" />
                 <TextBlock Grid.Row="1" Grid.Column="1" Margin="242,150,-154,-170" ><Run Text="时间间隔："  FontSize="22"/></TextBlock>
-                <TextBox Grid.Row="1" Grid.Column="1" x:Name="sjjg" FontSize="26" Margin="394,150,-355,-170" Grid.RowSpan="1" Text="以秒为单位" />
-                <PasswordBox Grid.Row="1" Grid.Column="1" x:Name="mm" FontSize="26" Margin="395,75,-357,-95" Grid.RowSpan="1" RenderTransformOrigin="0.527,-2.75" />
-                <TextBlock Grid.Row="1" Margin="20,223,188,-243" Grid.ColumnSpan="2" ><Run Text="上传地址："  FontSize="22"/></TextBlock>
-                <TextBox Grid.Row="1" Grid.Column="1" x:Name="scdz" FontSize="26" Margin="12,223,-357,-243" Grid.RowSpan="1" />
+                <TextBox Grid.Row="1" Grid.Column="1" x:Name="sjjg" TextAlignment="Center" FontSize="18" Margin="394,150,-355,-170" Grid.RowSpan="1" Text="" />
+                <PasswordBox Grid.Row="1" Grid.Column="1" x:Name="mm" FontSize="18"  Margin="395,75,-357,-95" Grid.RowSpan="1" RenderTransformOrigin="0.527,-2.75" />
+                <TextBlock Grid.Row="1" Margin="0,223,27,-243" Grid.ColumnSpan="2" ><Run Text="上传地址："  FontSize="22"/></TextBlock>
+                <TextBox Grid.Row="1" Grid.Column="1" x:Name="scdz" TextAlignment="Center" FontSize="18" Margin="12,223,-357,-243" Grid.RowSpan="1" />
             </Grid>
         </GroupBox>
         <Button Content="确定" HorizontalAlignment="Left" Margin="564,645,0,0" VerticalAlignment="Top" Width="145" Height="37"  FontSize="22" Click="Button_Click"/>

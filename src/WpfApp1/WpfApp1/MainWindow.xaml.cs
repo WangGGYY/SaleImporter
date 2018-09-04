@@ -32,11 +32,19 @@ namespace WpfApp1
         public MainWindow()
         {
             InitializeComponent();
-            xkzs.Text = ConfigurationManager.AppSettings["licensekey"];
-            yhm.Text = ConfigurationManager.AppSettings["username"];
-            mm.Password = ConfigurationManager.AppSettings["password"];
+
+            fwqdz.Text = ConfigurationManager.AppSettings["fwqdz"];
+            sjkmc.Text = ConfigurationManager.AppSettings["sjkmc"];
+            sjkyhm.Text = ConfigurationManager.AppSettings["sjkyhm"];
+            sjkmm.Password = ConfigurationManager.AppSettings["sjkmm"];
+            xkzs.Text = ConfigurationManager.AppSettings["licensekey"]; 
             scbh.Text = ConfigurationManager.AppSettings["mallid"];
+
+            yhzh.Text = ConfigurationManager.AppSettings["username"];
+            mm.Password = ConfigurationManager.AppSettings["password"];
             dph.Text = ConfigurationManager.AppSettings["storecode"];
+            sjjg.Text = ConfigurationManager.AppSettings["sjjg"];
+            scdz.Text = ConfigurationManager.AppSettings["address"];
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
@@ -44,28 +52,48 @@ namespace WpfApp1
             Send(sender, e);
             DispatcherTimer dispatcherTimer = new DispatcherTimer();
             dispatcherTimer.Tick += new EventHandler(Send);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, 120);
+
+            int fen = Convert.ToInt32(ConfigurationManager.AppSettings["minute"]);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, fen); //两分钟
             dispatcherTimer.Start();
         }
 
         private void Send(object sender, EventArgs e)
         {
             //获取许可证书 用户名 密码  店铺号 
-            Configuration licensekey = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            licensekey.AppSettings.Settings["licensekey"].Value = xkzs.Text;
-            licensekey.Save();
-            Configuration username = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            username.AppSettings.Settings["username"].Value = yhm.Text;
-            username.Save();
-            Configuration password = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            password.AppSettings.Settings["password"].Value = mm.Password;
-            password.Save();
-            Configuration mallid = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            mallid.AppSettings.Settings["mallid"].Value = scbh.Text;
-            mallid.Save();
-            Configuration storecode = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            storecode.AppSettings.Settings["storecode"].Value = dph.Text;
-            storecode.Save();
+            Configuration fwqdzM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            fwqdzM.AppSettings.Settings["fwqdz"].Value = fwqdz.Text;
+            fwqdzM.Save();
+            Configuration sjkmcM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            sjkmcM.AppSettings.Settings["sjkmc"].Value = sjkmc.Text;
+            sjkmcM.Save();
+            Configuration sjkyhmM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            sjkyhmM.AppSettings.Settings["sjkyhm"].Value = sjkyhm.Text;
+            sjkyhmM.Save();
+            Configuration sjkmmM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            sjkmmM.AppSettings.Settings["sjkmm"].Value = sjkmm.Password;
+            sjkmmM.Save();
+            Configuration licensekeyM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            licensekeyM.AppSettings.Settings["licensekey"].Value = xkzs.Text;
+            licensekeyM.Save();
+            Configuration mallidM= ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            mallidM.AppSettings.Settings["mallid"].Value = scbh.Text;
+            mallidM.Save();
+            Configuration usernameM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            usernameM.AppSettings.Settings["username"].Value = yhzh.Text;
+            usernameM.Save();
+            Configuration passwordM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            passwordM.AppSettings.Settings["password"].Value = mm.Password;
+            passwordM.Save();
+            Configuration dphM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            dphM.AppSettings.Settings["storecode"].Value = dph.Text;
+            dphM.Save();
+            Configuration sjjgM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            sjjgM.AppSettings.Settings["sjjg"].Value = sjjg.Text;
+            sjjgM.Save();
+            Configuration addressM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            addressM.AppSettings.Settings["address"].Value = scdz.Text;
+            addressM.Save();
 
             requestheader header = new requestheader();
             header.licensekey = ConfigurationManager.AppSettings["licensekey"].ToString();
@@ -166,7 +194,7 @@ namespace WpfApp1
                         }
 
                         sales.extendparam = "";
-                        items.itemcode = ConfigurationManager.AppSettings["item_no"].ToString(); ; //"01L501N011";
+                        items.itemcode = ConfigurationManager.AppSettings["storecode"].ToString()+"1"; ; //"01L501N011";货号
                         items.bonusearn = 0;
                         items.discountamount = 0;
                         items.extendparam = "";
@@ -274,7 +302,13 @@ namespace WpfApp1
         //获取数据
         public DataTable Obtain(string sql)
         {
-            string con = Settings.Default.DbConnStr;// "data source=NUWIN;initial catalog=hbposv8;uid=sa;pwd=nuwin;";
+            string address = ConfigurationManager.AppSettings["fwqdz"];
+            string catalog = ConfigurationManager.AppSettings["sjkmc"];
+            string uid = ConfigurationManager.AppSettings["sjkyhm"];
+            string pwd = ConfigurationManager.AppSettings["sjkmm"];
+
+
+            string con =  "data source="+address+";initial catalog="+catalog+";uid="+ uid + ";pwd="+pwd+";";
 
             SqlConnection mycon = new SqlConnection(con);
             mycon.Open();
@@ -283,7 +317,7 @@ namespace WpfApp1
             SqlDataAdapter adapter = new SqlDataAdapter(sql, mycon);
             adapter.Fill(dt);
 
-            return dt;
+            return dt; 
         }
 
         public void Save(string path, string code, string str, string flowNo)
@@ -300,6 +334,11 @@ namespace WpfApp1
                 streamWriter.Write("flow_no:" + flowNo);
                 //关闭此文件
             }
+        }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

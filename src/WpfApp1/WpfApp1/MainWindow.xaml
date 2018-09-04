@@ -5,23 +5,55 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
-        Title="MainWindow" Height="538.034" Width="1019.691">
-    <Grid Margin="-3,-24,-4,32" Background="Blue" HorizontalAlignment="Right" Width="1019">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="88*"/>
-            <RowDefinition Height="115*"/>
-            <RowDefinition Height="298*"/>
-        </Grid.RowDefinitions>
-        <Button Content="确定" FontSize="20px" HorizontalAlignment="Left" Margin="441,190.6,0,0" VerticalAlignment="Top" Width="135" Height="42" Click="Button_Click" Grid.Row="2" Foreground="Black"/>
-        <TextBox HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="42" Margin="131,72.2,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="165" Name="xkzs" Grid.Row="1" />
-        <Label Content="许可证书：" HorizontalAlignment="Left" Margin="10,72,0,6" FontSize="20px" Width="135" Grid.Row="1" Foreground="#FFF4F4F4"/>
-        <TextBox HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="42" Margin="463,72.2,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="165" Name="yhm" Grid.Row="1"/>
-        <PasswordBox  Margin="781,72,73,0" Height="42" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" PasswordChar="*" VerticalAlignment="Top" Width="165" Name="mm" Grid.Row="1"/>
-        <Label Content="密码：" HorizontalAlignment="Left" Margin="702,78,0,4.2" FontSize="20px" Width="55" Grid.Row="1" Foreground="#FFF4F4F4"/>
-        <TextBox HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="42" Margin="131,47.6,0,0" TextWrapping="Wrap" Text="01" VerticalAlignment="Top" Width="165" x:Name="scbh" Grid.Row="2" />
-        <Label Content="商场编号:" HorizontalAlignment="Left" Margin="10,53.8,0,207.8" FontSize="20px" Width="135" Grid.Row="2" Foreground="#FFF4F4F4" />
-        <Label Content="用户名：" HorizontalAlignment="Left" Margin="365,72,0,4" FontSize="20px" Width="135" Grid.Row="1" Foreground="#FFF4F4F4"/>
-        <Label Content="店铺号：" HorizontalAlignment="Left" Margin="365,51.8,0,207.8" FontSize="20px" Width="135" Grid.Row="2" Foreground="#FFF4F4F4"/>
-        <TextBox HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Height="42" Margin="463,45.8,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="165" x:Name="dph" Grid.Row="2" />
+        Title="MainWindow" Height="746" Width="737">
+    <Grid Background="Blue" Margin="-2,0,-3,0" Height="711" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="734" >
+        <GroupBox Header="数据库配置" HorizontalAlignment="Left" Height="250" VerticalAlignment="Top" Foreground="#FFF4F4F4" Width="709"  FontSize="22" Margin="12,10,0,0">
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Top" Width="355">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Grid.Column="0"  FontSize="22" ><Run/><LineBreak/><Run Text="服务器地址："/></TextBlock>
+                <TextBlock Grid.Row="1" Margin="0,25,210,-65" Grid.ColumnSpan="2" ><Run Text="数据库名称：" FontSize="22"/></TextBlock>
+                <TextBlock Grid.Row="1" Margin="43,93,170,-133" Grid.ColumnSpan="2" ><Run Text="用户名："  FontSize="22"/></TextBlock>
+                <TextBox x:Name="sjkyhm" Grid.Row="1"   Width="150" FontSize="26" Margin="23,93,50,-133" Grid.Column="1" />
+                <TextBlock Grid.Row="1" Margin="256,94,-178,-134" Grid.Column="1" ><Run Text="密码："  FontSize="22"/></TextBlock>
+                <PasswordBox Grid.Column="1" Name="sjkmm"  Margin="362,94,-303,-134" Grid.Row="1" RenderTransformOrigin="0.08,0.375" />
+                <TextBox Grid.Column="1" x:Name="sjkmc"  Margin="23,25,-55,-65" Grid.Row="1" RenderTransformOrigin="0.08,0.375" />
+                <TextBox Grid.Column="1" x:Name="fwqdz"  Margin="23,18,-55,0" RenderTransformOrigin="0.08,0.375" />
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="上传配置"  FontSize="22" HorizontalAlignment="Left" Height="310" Margin="11,310,0,0" VerticalAlignment="Top" Foreground="#FFF4F4F4" Width="710">
+            <Grid HorizontalAlignment="Left" VerticalAlignment="Top">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,24,0,-44"  FontSize="22">许可证书：</TextBlock>
+                <TextBox x:Name="xkzs" Grid.Row="1" Grid.Column="1"  Width="150" FontSize="26" Margin="11,14,37,-34" Grid.RowSpan="1" />
+                <TextBlock Grid.Row="1" Margin="23,90,165,-110" Grid.ColumnSpan="2" ><Run Text="用户帐号："  FontSize="22"/></TextBlock>
+                <TextBox Grid.Row="1" Grid.Column="1" Name="yhzh"   Width="150" FontSize="26" Margin="12,83,36,-103" Grid.RowSpan="1" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Margin="284,80,-196,-100" ><Run Text="密码："  FontSize="22"/></TextBlock>
+                <TextBlock Grid.Row="1" Grid.Column="1" Margin="240,19,-162,-39" ><Run Text="商场编号："  FontSize="22"/></TextBlock>
+                <TextBox Grid.Row="1" Grid.Column="1" Name="scbh" FontSize="26" Margin="395,7,-357,-27" Grid.RowSpan="1" RenderTransformOrigin="0.527,-2.75" />
+                <TextBlock Grid.Row="1" Grid.Column="0" Margin="21,156,177,-176" Grid.ColumnSpan="2" ><Run Text="店铺号："  FontSize="22"/></TextBlock>
+                <TextBox Grid.Row="1" Grid.Column="1" Name="dph"  Width="150" FontSize="26" Margin="12,153,36,-173" Grid.RowSpan="1" />
+                <TextBlock Grid.Row="1" Grid.Column="1" Margin="242,150,-154,-170" ><Run Text="时间间隔："  FontSize="22"/></TextBlock>
+                <TextBox Grid.Row="1" Grid.Column="1" x:Name="sjjg" FontSize="26" Margin="394,150,-355,-170" Grid.RowSpan="1" Text="以秒为单位" />
+                <PasswordBox Grid.Row="1" Grid.Column="1" x:Name="mm" FontSize="26" Margin="395,75,-357,-95" Grid.RowSpan="1" RenderTransformOrigin="0.527,-2.75" />
+                <TextBlock Grid.Row="1" Margin="20,223,188,-243" Grid.ColumnSpan="2" ><Run Text="上传地址："  FontSize="22"/></TextBlock>
+                <TextBox Grid.Row="1" Grid.Column="1" x:Name="scdz" FontSize="26" Margin="12,223,-357,-243" Grid.RowSpan="1" />
+            </Grid>
+        </GroupBox>
+        <Button Content="确定" HorizontalAlignment="Left" Margin="564,645,0,0" VerticalAlignment="Top" Width="145" Height="37"  FontSize="22" Click="Button_Click"/>
+        <Label Content="时间间隔以秒为单位"  FontSize="22" HorizontalAlignment="Left" Margin="65,645,0,0" VerticalAlignment="Top" Background="#FFF9F2F2"/>
     </Grid>
 </Window>

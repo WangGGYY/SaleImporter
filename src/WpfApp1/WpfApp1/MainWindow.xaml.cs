@@ -1,125 +1,122 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using System.Data;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
-using WpfApp1.ServiceReference1;
 using System.Windows.Threading;
-using System.Data;
-using System.IO;
-using System.Reflection;
-using System.Configuration;
-using System.Threading;
-using WpfApp1.Properties;
-using System.Windows.Interop;
-
+using WpfApp1.ServiceReference1;
 namespace WpfApp1
 {
     /// <summary>
-    /// MainWindow.xaml 的交互逻辑
+    /// Success.xaml 的交互逻辑
     /// </summary>
     public partial class MainWindow : Window
     {
+        public bool Result;
+
         public MainWindow()
         {
             InitializeComponent();
-
-
-            fwqdz.Text = ConfigurationManager.AppSettings["fwqdz"];
-            sjkmc.Text = ConfigurationManager.AppSettings["sjkmc"];
-            sjkyhm.Text = ConfigurationManager.AppSettings["sjkyhm"];
-            sjkmm.Password = ConfigurationManager.AppSettings["sjkmm"];
-            xkzs.Text = ConfigurationManager.AppSettings["licensekey"];
-            scbh.Text = ConfigurationManager.AppSettings["mallid"];
-
-            yhzh.Text = ConfigurationManager.AppSettings["username"];
-            mm.Password = ConfigurationManager.AppSettings["password"];
-            dph.Text = ConfigurationManager.AppSettings["storecode"];
-            sjjg.Text = ConfigurationManager.AppSettings["sjjg"];
-            scdz.Text = ConfigurationManager.AppSettings["address"];
-
-            this.StateChanged += MainWindow_StateChanged;
+            stopButton.IsEnabled = false;
+            //this.StateChanged += Success_StateChanged;
+            this.Loaded += MainWindow_Loaded;
         }
 
-
-         int canshu = 1;
-        private void MainWindow_StateChanged(object sender, EventArgs e)
+        private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            this.Close();
-            Success success = new Success();
-            success.Show();
-        }
-
-        int iserror = 0;
-
-        DispatcherTimer dispatcherTimer = new DispatcherTimer();
-      
-        public void Button_Click(object sender, RoutedEventArgs e)
-        {
-            this.IsEnabled = false;
-            MessageBox.Show("连接中");
-            Send(sender, e);
-            if (iserror == 0)
+            string textFile = DateTime.Now.ToString("yyyyMMdd") + "Log.txt";
+            FileStream fs;
+            //读取记事本记录
+            if (File.Exists(textFile))
             {
-                this.WindowState = WindowState.Maximized;
-                dispatcherTimer.Tick += new EventHandler(Send);
+                fs = new FileStream(textFile, FileMode.Open, FileAccess.Read);
+                using (fs)
+                {
+                    int fsLen = (int)fs.Length;
+                    byte[] heByte = new byte[fsLen];
+                    int r = fs.Read(heByte, 0, heByte.Length);
+                    string myStr = System.Text.Encoding.UTF8.GetString(heByte);
+                    SuccessInfomation.Text = myStr;
+                    SuccessInfomation.ScrollToEnd();
 
-                int fen = Convert.ToInt32(ConfigurationManager.AppSettings["sjjg"]);
-                dispatcherTimer.Interval = new TimeSpan(0, 0, fen); //两分钟
-                dispatcherTimer.Start();
-
-
+                }
             }
 
+            dispatcherTimer.Tick += new EventHandler(Send);
+            int fen = Convert.ToInt32(ConfigurationManager.AppSettings["sjjg"]);
+            dispatcherTimer.Interval = new TimeSpan(0, 0, fen); //两分钟
+            dispatcherTimer.Start();
+            #region 
+            //this.notifyIcon = new NotifyIcon();
+            //this.notifyIcon.BalloonTipText = "系统监控中... ...";
+            //this.notifyIcon.ShowBalloonTip(2000);
+            //this.notifyIcon.Text = "系统监控中... ...";
+            //this.notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.ExecutablePath);
+            //this.notifyIcon.Visible = true;
+            ////打开菜单项
+            //System.Windows.Forms.MenuItem open = new System.Windows.Forms.MenuItem("打开");
+            //open.Click += new EventHandler(Show);
+            ////退出菜单项
+            //System.Windows.Forms.MenuItem exit = new System.Windows.Forms.MenuItem("退出");
+            //exit.Click += new EventHandler(Close);
+            ////关联托盘控件
+            //System.Windows.Forms.MenuItem[] childen = new System.Windows.Forms.MenuItem[] { open, exit };
+            //notifyIcon.ContextMenu = new System.Windows.Forms.ContextMenu(childen);
+
+            //this.notifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler((o, e) =>
+            //{
+            //    if (e.Button == MouseButtons.Left) this.Show(o, e);
+            //}); 
+            #endregion
+
         }
 
-        private void Send(object sender, EventArgs e)
+
+        //点击设置
+        public void SettingClick(object sender, RoutedEventArgs e)
+        {
+            VerificationWindow vf = new VerificationWindow(this);
+            vf.ShowDialog();
+            if (vf.Result)
+            {
+                SettingWindow setWnd = new SettingWindow();
+                setWnd.ShowDialog();
+                Close();
+            }
+            else
+            {
+            }
+        }
+        DispatcherTimer dispatcherTimer = new DispatcherTimer();
+
+        //点击启动
+        public void StartClick(object sender, RoutedEventArgs e)
+        {
+            stopButton.IsEnabled = true;
+            startButton.IsEnabled = false;
+            settingtButton.IsEnabled = false;
+            Prompt.Content = "连接中";
+            Send(sender, e);
+        }
+
+        public void Send(object sender, EventArgs e)
         {
             dispatcherTimer.Stop();
-            //获取许可证书 用户名 密码  店铺号 
-            Configuration fwqdzM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            fwqdzM.AppSettings.Settings["fwqdz"].Value = fwqdz.Text;
-            fwqdzM.Save();
-            Configuration sjkmcM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            sjkmcM.AppSettings.Settings["sjkmc"].Value = sjkmc.Text;
-            sjkmcM.Save();
-            Configuration sjkyhmM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            sjkyhmM.AppSettings.Settings["sjkyhm"].Value = sjkyhm.Text;
-            sjkyhmM.Save();
-            Configuration sjkmmM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            sjkmmM.AppSettings.Settings["sjkmm"].Value = sjkmm.Password;
-            sjkmmM.Save();
-            Configuration licensekeyM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            licensekeyM.AppSettings.Settings["licensekey"].Value = xkzs.Text;
-            licensekeyM.Save();
-            Configuration mallidM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            mallidM.AppSettings.Settings["mallid"].Value = scbh.Text;
-            mallidM.Save();
-            Configuration usernameM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            usernameM.AppSettings.Settings["username"].Value = yhzh.Text;
-            usernameM.Save();
-            Configuration passwordM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            passwordM.AppSettings.Settings["password"].Value = mm.Password;
-            passwordM.Save();
-            Configuration dphM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            dphM.AppSettings.Settings["storecode"].Value = dph.Text;
-            dphM.Save();
-            Configuration sjjgM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            sjjgM.AppSettings.Settings["sjjg"].Value = sjjg.Text;
-            sjjgM.Save();
-            Configuration addressM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            addressM.AppSettings.Settings["address"].Value = scdz.Text;
-            addressM.Save();
 
             requestheader header = new requestheader();
             header.licensekey = ConfigurationManager.AppSettings["licensekey"].ToString();
@@ -134,21 +131,13 @@ namespace WpfApp1
             header.version = "V332M";
 
             StringBuilder sb = new StringBuilder();
-            if (string.IsNullOrWhiteSpace(ConfigurationManager.AppSettings["com_no"]))
-            {
-                Configuration com_no = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                com_no.AppSettings.Settings["com_no"].Value = "0";
-                com_no.Save();
-            }
-            ConfigurationManager.RefreshSection("appSettings");
+
             DataTable payflow = Obtain("select t_rm_payflow.pay_way,sell_way,com_no,t_rm_payflow.flow_no,t_rm_payflow.sale_man,t_rm_payflow.vip_no,t_rm_payflow.pay_amount  from  t_rm_payflow where pay_way !='CHG' and com_no > " + ConfigurationManager.AppSettings["com_no"]);
 
             if (payflow == null)
             {
-                if (iserror == 10)
-                {
-                    MessageBox.Show("数据库配置错误!");
-                }
+                dispatcherTimer.Start();
+
                 return;
             }
             //去重
@@ -160,10 +149,8 @@ namespace WpfApp1
                     payflow.Rows.RemoveAt(i);
                 }
             }
-                //DataView dv = payflow.DefaultView;
-                //payflow = dv.ToTable("Dist", true, payflow.Rows[i]["flow_no"].ToString());
-                //一次获取付款表的销售单号 并把当前最大的标识列取出保存
-                foreach (DataRow item in payflow.Rows)
+            //一次获取付款表的销售单号 并把当前最大的标识列取出保存
+            foreach (DataRow item in payflow.Rows)
             {
 
                 sb.Append(item["flow_no"] + ",");
@@ -176,6 +163,8 @@ namespace WpfApp1
             }
             else
             {
+                dispatcherTimer.Start();
+
                 return;
             }
             //用来循环
@@ -183,8 +172,10 @@ namespace WpfApp1
             //查询流水表 用来赋值
             DataTable saleflow = Obtain("select posid, flow_no,sell_way,sale_qnty, CONVERT(varchar(100), t_rm_saleflow.oper_date, 112) as oper_day, replace(CONVERT(varchar(100), oper_date, 8),':','') as oper_time, t_rm_saleflow.oper_id, t_rm_saleflow.sale_qnty, t_rm_saleflow.sale_money,t_rm_saleflow.item_no, (source_price - sale_price) * sale_qnty as salequt,t_rm_saleflow.sale_money from t_rm_saleflow where flow_no  in (" + strS + ") ");
             saleflowold = saleflow;
-            if (saleflowold==null)
+            if (saleflowold == null)
             {
+                dispatcherTimer.Start();
+
                 return;
             }
             //去重
@@ -208,7 +199,7 @@ namespace WpfApp1
                     {
                         esaleshdr sales = new esaleshdr();
 
-                        sales.mallid = scbh.Text;//商场编号
+                        sales.mallid = ConfigurationManager.AppSettings["mallid"];//商场编号
                         sales.txdate_yyyymmdd = saleRow["oper_day"].ToString();
 
                         sales.txtime_hhmmss = saleRow["oper_time"].ToString();
@@ -275,15 +266,12 @@ namespace WpfApp1
                         }
 
                         sales.extendparam = "";
-                        
 
                         postesalescreaterequest postsale = new postesalescreaterequest();
                         postsale.header = header;
                         postsale.esalesitems = item;
                         postsale.esalestenders = enderList;
                         postsale.esalestotal = sales;
-                        //postsale.ExtensionData = sales;
-
 
                         postesalescreateRequest1Body body = new postesalescreateRequest1Body();
                         body.astr_request = postsale;
@@ -301,7 +289,7 @@ namespace WpfApp1
                             short code = respone.header.responsecode;
                             string str = respone.header.responsemessage;
 
-                            if (code == 0 || code==1000)
+                            if (code == 0 || code == 1000)
                             {
                                 int num = 0;
 
@@ -317,8 +305,11 @@ namespace WpfApp1
 
                                 }
                             }
-                            //保存日志
-                            Save(DateTime.Now.ToString("yyyyMMdd") + "Log.txt", code.ToString(), str, flow_no);
+                            if (code != 1000)
+                            {
+                                //保存日志
+                                Save(DateTime.Now.ToString("yyyyMMdd") + "Log.txt", code.ToString(), str, flow_no);
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -329,22 +320,86 @@ namespace WpfApp1
                                 Send(sender, e);
                             }
                         }
-                        canshu += 1;
-                        
                     }
                 }
             }
+            Infomation(sender, e);
+           
+            dispatcherTimer.Start();
+        }
+        //获取数据
+        public DataTable Obtain(string sql)
+        {
+            string address = ConfigurationManager.AppSettings["fwqdz"];
+            string catalog = ConfigurationManager.AppSettings["sjkmc"];
+            string uid = ConfigurationManager.AppSettings["sjkyhm"];
+            string pwd = ConfigurationManager.AppSettings["sjkmm"];
 
-            Success sc = new Success();
-            sc.Infomation(sender, e);
-            //Configuration no = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-            //no.AppSettings.Settings["no"].Value = canshu.ToString();
-            //no.Save();
-            //ConfigurationManager.RefreshSection("appSettings");
+
+            string con = "data source=" + address + ";initial catalog=" + catalog + ";uid=" + uid + ";pwd=" + pwd + ";";
+            DataTable dt = new DataTable();
+
+            using (SqlConnection mycon = new SqlConnection(con))
+            {
+                try
+                {
+                    mycon.Open();
+                    SqlDataAdapter adapter = new SqlDataAdapter(sql, mycon);
+                    adapter.Fill(dt);
+                    Result = true;
+                }
+                catch (Exception)
+                {
+                    return null;
+                }
+            }
+            return dt;
+        }
+        //保存记录
+        public void Save(string path, string code, string str, string flowNo)
+        {
+            using (var fs = new FileStream(path, FileMode.Append))
+            using (StreamWriter streamWriter = new StreamWriter(fs))
+            {
+                streamWriter.Write("\r\n");//换行
+                if (code == "0")
+                {
+                    streamWriter.Write("销售单号：" + flowNo + "   传送时间：" + DateTime.Now.ToString("hh:mm:ss")+ "   传送成功");
+                }
+                else
+                {
+                    streamWriter.Write("销售单号：" + flowNo + "   传送时间：" + DateTime.Now.ToString("hh:mm:ss") + "   传送失败");
+                }
+                streamWriter.Write("\r\n");//换行
+
+                //关闭此文件
+            }
         }
 
+        public void Infomation(object sender, EventArgs e)
+        {
+            string textFile = DateTime.Now.ToString("yyyyMMdd") + "Log.txt";
+            FileStream fs;
+            if (File.Exists(textFile))
+            {
+                fs = new FileStream(textFile, FileMode.Open, FileAccess.Read);
+                using (fs)
+                {
+                    using (fs)
+                    {
+                        int fsLen = (int)fs.Length;
+                        byte[] heByte = new byte[fsLen];
+                        int r = fs.Read(heByte, 0, heByte.Length);
+                        string myStr = System.Text.Encoding.UTF8.GetString(heByte);
+                        SuccessInfomation.Text = myStr;
+                        SuccessInfomation.ScrollToEnd();
 
+                    }
+                }
+            }
+        }
 
+        //datetable 转list
         public static List<SalesModel> ConvertToModel(DataTable dt)
         {
             List<SalesModel> salesList = new List<SalesModel>();// 定义集合
@@ -369,63 +424,35 @@ namespace WpfApp1
             }
             return salesList;
         }
-        //获取数据
-        public DataTable Obtain(string sql)
+
+        private void Show(object sender, EventArgs e)
         {
-            string address = ConfigurationManager.AppSettings["fwqdz"];
-            string catalog = ConfigurationManager.AppSettings["sjkmc"];
-            string uid = ConfigurationManager.AppSettings["sjkyhm"];
-            string pwd = ConfigurationManager.AppSettings["sjkmm"];
-
-
-            string con = "data source=" + address + ";initial catalog=" + catalog + ";uid=" + uid + ";pwd=" + pwd + ";";
-            DataTable dt = new DataTable();
-
-            using (SqlConnection mycon = new SqlConnection(con))
+            this.Visibility = System.Windows.Visibility.Visible;
+            this.ShowInTaskbar = true;
+            if (this.Activate())
             {
-                try
-                {
-                    mycon.Open();
-                    SqlDataAdapter adapter = new SqlDataAdapter(sql, mycon);
-                    adapter.Fill(dt);
-                }
-                catch (Exception)
-                {
-                    iserror = 10;
-                    return null;
-                }
-            }
-            return dt;
-        }
-
-        public void Save(string path, string code, string str, string flowNo)
-        {
-            using (var fs = new FileStream(path, FileMode.Append))
-            using (StreamWriter streamWriter = new StreamWriter(fs))
-            {
-                streamWriter.Write("\r\n");//换行
-                if (code == "0" || code == "1000")
-                {
-                    streamWriter.Write("传送:" + "成功");
-                    streamWriter.Write("\r\n");//换行
-                    streamWriter.Write("成功销售单号:" + flowNo);
-                }
-                else
-                {
-                    streamWriter.Write("传送:" + "失败");
-                    streamWriter.Write("\r\n");//换行
-                    streamWriter.Write("失败销售单号:" + flowNo);
-                    streamWriter.Write("\r\n");//换行
-                    streamWriter.Write("str:" + str);
-                    streamWriter.Write("\r\n");//换行
-                    streamWriter.Write("code:" + code);
-
-                }
-                streamWriter.Write("\r\n");//换行
-                streamWriter.Write("时间:" + DateTime.Now.ToString("hh:mm:ss"));
-                //关闭此文件
+                this.WindowState = WindowState.Normal;
             }
         }
 
+        private void Hide(object sender, EventArgs e)
+        {
+            this.ShowInTaskbar = false;
+            this.Visibility = System.Windows.Visibility.Hidden;
+        }
+
+        private void Close(object sender, EventArgs e)
+        {
+            System.Windows.Application.Current.Shutdown();
+        }
+
+        private void stopButton_Click(object sender, RoutedEventArgs e)
+        {
+            startButton.IsEnabled = true;
+            settingtButton.IsEnabled = true;
+            Prompt.Content = "请点击启动导入数据";
+            stopButton.IsEnabled = false;
+            dispatcherTimer.Stop();
+        }
     }
 }

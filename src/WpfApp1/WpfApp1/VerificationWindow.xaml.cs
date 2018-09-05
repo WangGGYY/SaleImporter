@@ -17,21 +17,22 @@ namespace WpfApp1
     /// <summary>
     /// Verification.xaml 的交互逻辑
     /// </summary>
-    public partial class Verification : Window
+    public partial class VerificationWindow : Window
     {
-        public Verification()
+        public bool Result;//true: ok, false:
+        public VerificationWindow(Window owner)
         {
             InitializeComponent();
+            this.Owner = owner;
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        private void OkClick(object sender, RoutedEventArgs e)
         {
             string time = DateTime.Now.ToString("yyyyMMdd");
             if (yhzh.Password == time)
             {
-                this.Hide();
-                MainWindow mw = new MainWindow();
-                mw.ShowDialog();
+                Result = true;
+                Close();
             }
             else
             {
@@ -39,10 +40,11 @@ namespace WpfApp1
             }
         }
 
-        private void Button_Click_1(object sender, RoutedEventArgs e)
+        private void CancelClick(object sender, RoutedEventArgs e)
         {
-            Success sc = new Success();
-            sc.ShowDialog();
+            //Success sc = new Success();
+            //sc.ShowDialog();
+            Close();
         }
     }
 }

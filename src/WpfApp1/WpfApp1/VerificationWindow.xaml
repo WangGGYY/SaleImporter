@@ -1,15 +1,15 @@
-﻿<Window x:Class="WpfApp1.Verification"
+﻿<Window x:Class="WpfApp1.VerificationWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp1"
-        mc:Ignorable="d"
+        mc:Ignorable="d" ShowInTaskbar="False" WindowStartupLocation="CenterOwner"
         Title="验证" Height="171" Width="439" Background="#FF599C8A">
     <Grid Margin="0,0,17,220"  Background="#FF599C8A">
         <TextBlock Grid.Row="1" Grid.Column="0" Margin="20,25,278,-55" ><Run Text="请输入密码："  FontSize="22" Foreground="#FFFBF9F9"/></TextBlock>
         <PasswordBox Grid.Row="1" x:Name="yhzh" VerticalContentAlignment="Center" FontSize="18" Margin="165,25,69,-55" Grid.RowSpan="1" />
-        <Button Content="确认" HorizontalAlignment="Left" Height="35" Margin="300,95,0,-130" VerticalAlignment="Top" Width="105" FontSize="22" Click="Button_Click"/>
-        <Button Content="取消" HorizontalAlignment="Left" Height="35" Margin="165,95,0,-130" VerticalAlignment="Top" Width="105" FontSize="22" Click="Button_Click_1" />
+        <Button Content="确认" HorizontalAlignment="Left" Height="35" Margin="300,95,0,-130" VerticalAlignment="Top" Width="105" FontSize="22" Click="OkClick"/>
+        <Button Content="取消" HorizontalAlignment="Left" Height="35" Margin="165,95,0,-130" VerticalAlignment="Top" Width="105" FontSize="22" Click="CancelClick" />
     </Grid>
 </Window>

@@ -34,7 +34,6 @@ namespace WpfApp1
             }
             else
             {
-                //  mainWindow.WindowState = WindowState.Normal;
                 MessageBox.Show("只能运行一个实例");
             }
         }

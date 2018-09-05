@@ -51,6 +51,8 @@ namespace WpfApp1
             this.StateChanged += MainWindow_StateChanged;
         }
 
+
+         int canshu = 1;
         private void MainWindow_StateChanged(object sender, EventArgs e)
         {
             this.Close();
@@ -60,6 +62,8 @@ namespace WpfApp1
 
         int iserror = 0;
 
+        DispatcherTimer dispatcherTimer = new DispatcherTimer();
+      
         public void Button_Click(object sender, RoutedEventArgs e)
         {
             this.IsEnabled = false;
@@ -68,18 +72,20 @@ namespace WpfApp1
             if (iserror == 0)
             {
                 this.WindowState = WindowState.Maximized;
-                DispatcherTimer dispatcherTimer = new DispatcherTimer();
                 dispatcherTimer.Tick += new EventHandler(Send);
 
                 int fen = Convert.ToInt32(ConfigurationManager.AppSettings["sjjg"]);
                 dispatcherTimer.Interval = new TimeSpan(0, 0, fen); //两分钟
                 dispatcherTimer.Start();
+
+
             }
 
         }
 
         private void Send(object sender, EventArgs e)
         {
+            dispatcherTimer.Stop();
             //获取许可证书 用户名 密码  店铺号 
             Configuration fwqdzM = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
             fwqdzM.AppSettings.Settings["fwqdz"].Value = fwqdz.Text;
@@ -135,7 +141,7 @@ namespace WpfApp1
                 com_no.Save();
             }
             ConfigurationManager.RefreshSection("appSettings");
-            DataTable payflow = Obtain("select t_rm_payflow.pay_way,sell_way,com_no,t_rm_payflow.flow_no,t_rm_payflow.sale_man,t_rm_payflow.vip_no,t_rm_payflow.pay_amount  from  t_rm_payflow where com_no > " + ConfigurationManager.AppSettings["com_no"]);
+            DataTable payflow = Obtain("select t_rm_payflow.pay_way,sell_way,com_no,t_rm_payflow.flow_no,t_rm_payflow.sale_man,t_rm_payflow.vip_no,t_rm_payflow.pay_amount  from  t_rm_payflow where pay_way !='CHG' and com_no > " + ConfigurationManager.AppSettings["com_no"]);
 
             if (payflow == null)
             {
@@ -154,8 +160,10 @@ namespace WpfApp1
                     payflow.Rows.RemoveAt(i);
                 }
             }
-            //一次获取付款表的销售单号 并把当前最大的标识列取出保存
-            foreach (DataRow item in payflow.Rows)
+                //DataView dv = payflow.DefaultView;
+                //payflow = dv.ToTable("Dist", true, payflow.Rows[i]["flow_no"].ToString());
+                //一次获取付款表的销售单号 并把当前最大的标识列取出保存
+                foreach (DataRow item in payflow.Rows)
             {
 
                 sb.Append(item["flow_no"] + ",");
@@ -170,21 +178,36 @@ namespace WpfApp1
             {
                 return;
             }
-            //查询流水表
-            DataTable saleflow = Obtain("select posid, flow_no,sell_way,sale_qnty, CONVERT(varchar(100), t_rm_saleflow.oper_date, 112) as oper_day,Datename(hour,t_rm_saleflow.oper_date)+Datename(minute,t_rm_saleflow.oper_date)+Datename(second,t_rm_saleflow.oper_date) as oper_time, t_rm_saleflow.oper_id, t_rm_saleflow.sale_qnty, t_rm_saleflow.sale_money,t_rm_saleflow.item_no, (source_price - sale_price) * sale_qnty as salequt,t_rm_saleflow.sale_money from t_rm_saleflow where flow_no in (" + strS + ") ");
-
+            //用来循环
+            DataTable saleflowold = new DataTable();
+            //查询流水表 用来赋值
+            DataTable saleflow = Obtain("select posid, flow_no,sell_way,sale_qnty, CONVERT(varchar(100), t_rm_saleflow.oper_date, 112) as oper_day, replace(CONVERT(varchar(100), oper_date, 8),':','') as oper_time, t_rm_saleflow.oper_id, t_rm_saleflow.sale_qnty, t_rm_saleflow.sale_money,t_rm_saleflow.item_no, (source_price - sale_price) * sale_qnty as salequt,t_rm_saleflow.sale_money from t_rm_saleflow where flow_no  in (" + strS + ") ");
+            saleflowold = saleflow;
+            if (saleflowold==null)
+            {
+                return;
+            }
+            //去重
+            for (int i = saleflowold.Rows.Count - 2; i > 0; i--)
+            {
+                DataRow[] rows = saleflowold.Select(string.Format("{0}='{1}'", "flow_no", saleflowold.Rows[i]["flow_no"]));
+                if (rows.Length > 1)
+                {
+                    saleflowold.Rows.RemoveAt(i);
+                }
+            }
             List<SalesModel> list = new List<SalesModel>();
 
             list = ConvertToModel(saleflow);
 
             foreach (DataRow payRow in payflow.Rows)
             {
-                foreach (DataRow saleRow in saleflow.Rows)
+                foreach (DataRow saleRow in saleflowold.Rows)
                 {
                     if (payRow["flow_no"].ToString() == saleRow["flow_no"].ToString() && saleRow["sell_way"].ToString() != "C")
                     {
                         esaleshdr sales = new esaleshdr();
-                        esalesitem items = new esalesitem();
+
                         sales.mallid = scbh.Text;//商场编号
                         sales.txdate_yyyymmdd = saleRow["oper_day"].ToString();
 
@@ -205,42 +228,54 @@ namespace WpfApp1
                         string flow_no = payRow["flow_no"].ToString();
                         decimal net = list.Where(u => u.flow_no == flow_no).Count();
 
+                        ArrayOfEsalestender enderList = new ArrayOfEsalestender();
+                        ArrayOfEsalesitem item = new ArrayOfEsalesitem();
+
+                        foreach (DataRow saleflowitem in saleflow.Rows)
+                        {
+                            esalestender esals = new esalestender();
+                            esals.tendercode = "CH";
+                            esals.payamount = Convert.ToInt32(payRow["pay_amount"]);
+                            esals.baseamount = Convert.ToInt32(payRow["pay_amount"]);
+                            esals.excessamount = 0;
+                            esals.extendparam = "";
+                            esals.remark = "";
+                            enderList.Add(esals);
+
+                            esalesitem items = new esalesitem();//销售单货品明细表 多
+                            items.itemcode = ConfigurationManager.AppSettings["storecode"].ToString() + "1"; ; //"01L501N011";货号
+                            items.bonusearn = 0;
+                            items.discountamount = 0;
+                            items.extendparam = "";
+                            items.salesitemremark = "";
+                            if (saleflowitem["sell_way"].ToString() == "A")
+                            {
+                                items.qty = Convert.ToInt32(saleflowitem["sale_qnty"]);
+                                items.netamount = Convert.ToInt32(saleflowitem["salequt"]);
+                            }
+                            else if (saleflowitem["sell_way"].ToString() == "B")
+                            {
+                                items.qty = -Convert.ToInt32(saleflowitem["sale_qnty"]);
+                                items.netamount = -Convert.ToInt32(saleflowitem["salequt"]);
+                            }
+                            item.Add(items);
+
+                        }
                         if (saleRow["sell_way"].ToString() == "A")
                         {
                             //总数量
                             sales.netqty = net;
                             //总金额 
                             sales.netamount = Convert.ToInt32(payRow["pay_amount"]);
-                            items.qty = Convert.ToInt32(saleRow["sale_qnty"]);
-                            items.netamount = Convert.ToInt32(saleRow["salequt"]);
                         }
                         else if (saleRow["sell_way"].ToString() == "B")
                         {
                             sales.netqty = net;
                             sales.netamount = -Convert.ToInt32(saleRow["sale_money"]);
-                            items.qty = -Convert.ToInt32(saleRow["sale_qnty"]);
-                            items.netamount = -Convert.ToInt32(saleRow["salequt"]);
                         }
 
                         sales.extendparam = "";
-                        items.itemcode = ConfigurationManager.AppSettings["storecode"].ToString() + "1"; ; //"01L501N011";货号
-                        items.bonusearn = 0;
-                        items.discountamount = 0;
-                        items.extendparam = "";
-                        items.salesitemremark = "";
-
-                        ArrayOfEsalesitem item = new ArrayOfEsalesitem();
-                        item.Add(items);
-
-                        esalestender esals = new esalestender();
-                        esals.tendercode = "CH";
-                        esals.payamount = Convert.ToInt32(payRow["pay_amount"]);
-                        esals.baseamount = Convert.ToInt32(payRow["pay_amount"]);
-                        esals.excessamount = 0;
-                        esals.extendparam = "";
-                        esals.remark = "";
-                        ArrayOfEsalestender enderList = new ArrayOfEsalestender();
-                        enderList.Add(esals);
+                        
 
                         postesalescreaterequest postsale = new postesalescreaterequest();
                         postsale.header = header;
@@ -266,7 +301,7 @@ namespace WpfApp1
                             short code = respone.header.responsecode;
                             string str = respone.header.responsemessage;
 
-                            if (code == 0)
+                            if (code == 0 || code==1000)
                             {
                                 int num = 0;
 
@@ -283,7 +318,7 @@ namespace WpfApp1
                                 }
                             }
                             //保存日志
-                            Save(DateTime.Now.ToString("yyyyMMdd") + "Log.txt", code.ToString(), str, saleRow["flow_no"].ToString());
+                            Save(DateTime.Now.ToString("yyyyMMdd") + "Log.txt", code.ToString(), str, flow_no);
                         }
                         catch (Exception ex)
                         {
@@ -294,9 +329,18 @@ namespace WpfApp1
                                 Send(sender, e);
                             }
                         }
+                        canshu += 1;
+                        
                     }
                 }
             }
+
+            Success sc = new Success();
+            sc.Infomation(sender, e);
+            //Configuration no = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            //no.AppSettings.Settings["no"].Value = canshu.ToString();
+            //no.Save();
+            //ConfigurationManager.RefreshSection("appSettings");
         }
 
 
@@ -363,10 +407,19 @@ namespace WpfApp1
                 if (code == "0" || code == "1000")
                 {
                     streamWriter.Write("传送:" + "成功");
+                    streamWriter.Write("\r\n");//换行
+                    streamWriter.Write("成功销售单号:" + flowNo);
                 }
                 else
                 {
                     streamWriter.Write("传送:" + "失败");
+                    streamWriter.Write("\r\n");//换行
+                    streamWriter.Write("失败销售单号:" + flowNo);
+                    streamWriter.Write("\r\n");//换行
+                    streamWriter.Write("str:" + str);
+                    streamWriter.Write("\r\n");//换行
+                    streamWriter.Write("code:" + code);
+
                 }
                 streamWriter.Write("\r\n");//换行
                 streamWriter.Write("时间:" + DateTime.Now.ToString("hh:mm:ss"));

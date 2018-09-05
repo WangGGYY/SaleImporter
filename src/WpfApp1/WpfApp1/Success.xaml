@@ -17,5 +17,6 @@
         <Button Content="设置" HorizontalAlignment="Left" Margin="550,363,0,0" VerticalAlignment="Top" Width="145" Height="37" Click="Button_Click" Grid.Column="1"/>
         <Button Content="启动" HorizontalAlignment="Left" Margin="360,363,0,0" VerticalAlignment="Top" Width="145" Height="37" Click="Button_Click_1" Grid.Column="1" />
         <Label Content="请点击启动导入数据" Grid.Column="1" HorizontalAlignment="Left" Margin="55,368,0,0" VerticalAlignment="Top" Width="165" Height="32"/>
+        <Label Name="biandong" Content="0" IsHitTestVisible="False" />
     </Grid>
 </Window>

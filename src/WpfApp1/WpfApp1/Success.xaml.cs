@@ -28,6 +28,7 @@ namespace WpfApp1
         {
             InitializeComponent();
 
+            biandong.Visibility = Visibility.Collapsed;
             string textFile = DateTime.Now.ToString("yyyyMMdd") + "Log.txt";
             FileStream fs;
             if (File.Exists(textFile))
@@ -39,26 +40,26 @@ namespace WpfApp1
                     text.Load(fs, System.Windows.DataFormats.Text);
                 }
             }
-            this.notifyIcon = new NotifyIcon();
-            this.notifyIcon.BalloonTipText = "系统监控中... ...";
-            this.notifyIcon.ShowBalloonTip(2000);
-            this.notifyIcon.Text = "系统监控中... ...";
-            this.notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.ExecutablePath);
-            this.notifyIcon.Visible = true;
-            //打开菜单项
-            System.Windows.Forms.MenuItem open = new System.Windows.Forms.MenuItem("打开");
-            open.Click += new EventHandler(Show);
-            //退出菜单项
-            System.Windows.Forms.MenuItem exit = new System.Windows.Forms.MenuItem("退出");
-            exit.Click += new EventHandler(Close);
-            //关联托盘控件
-            System.Windows.Forms.MenuItem[] childen = new System.Windows.Forms.MenuItem[] { open, exit };
-            notifyIcon.ContextMenu = new System.Windows.Forms.ContextMenu(childen);
+            //this.notifyIcon = new NotifyIcon();
+            //this.notifyIcon.BalloonTipText = "系统监控中... ...";
+            //this.notifyIcon.ShowBalloonTip(2000);
+            //this.notifyIcon.Text = "系统监控中... ...";
+            //this.notifyIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon(System.Windows.Forms.Application.ExecutablePath);
+            //this.notifyIcon.Visible = true;
+            ////打开菜单项
+            //System.Windows.Forms.MenuItem open = new System.Windows.Forms.MenuItem("打开");
+            //open.Click += new EventHandler(Show);
+            ////退出菜单项
+            //System.Windows.Forms.MenuItem exit = new System.Windows.Forms.MenuItem("退出");
+            //exit.Click += new EventHandler(Close);
+            ////关联托盘控件
+            //System.Windows.Forms.MenuItem[] childen = new System.Windows.Forms.MenuItem[] { open, exit };
+            //notifyIcon.ContextMenu = new System.Windows.Forms.ContextMenu(childen);
 
-            this.notifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler((o, e) =>
-            {
-                if (e.Button == MouseButtons.Left) this.Show(o, e);
-            });
+            //this.notifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler((o, e) =>
+            //{
+            //    if (e.Button == MouseButtons.Left) this.Show(o, e);
+            //});
 
             this.StateChanged += Success_StateChanged;
 
@@ -83,19 +84,21 @@ namespace WpfApp1
         public void Button_Click_1(object sender, RoutedEventArgs e)
         {
             Infomation(sender, e);
-            DispatcherTimer dispatcherTimer = new DispatcherTimer();
-            dispatcherTimer.Tick += new EventHandler(Infomation);
-
-            int fen = Convert.ToInt32(ConfigurationManager.AppSettings["sjjg"]);
-            dispatcherTimer.Interval = new TimeSpan(0, 0, fen); //两分钟
-            dispatcherTimer.Start();
 
             MainWindow mw = new MainWindow();
             mw.Button_Click(sender, e);
+
+            if (ConfigurationManager.AppSettings["no"] != "0")
+            {
+                Infomation(sender, e);
+                Configuration com_no = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                com_no.AppSettings.Settings["no"].Value = "0";
+                com_no.Save();
+            }
         }
 
 
-        private void Infomation(object sender, EventArgs e)
+        public void Infomation(object sender, EventArgs e)
         {
             string textFile = DateTime.Now.ToString("yyyyMMdd") + "Log.txt";
             FileStream fs;

@@ -157,7 +157,9 @@ namespace WpfApp1
             }
             //截掉最后一个逗号
             string strS = "";
-            if (sb.Length > 0)
+
+            sb.Append(ConfigurationManager.AppSettings["error"]);
+            if (sb.Length > 0 )
             {
                 strS = sb.ToString().Remove(sb.ToString().LastIndexOf(","), 1);
             }
@@ -167,164 +169,216 @@ namespace WpfApp1
 
                 return;
             }
-            //用来循环
-            DataTable saleflowold = new DataTable();
             //查询流水表 用来赋值
-            DataTable saleflow = Obtain("select posid, flow_no,sell_way,sale_qnty, CONVERT(varchar(100), t_rm_saleflow.oper_date, 112) as oper_day, replace(CONVERT(varchar(100), oper_date, 8),':','') as oper_time, t_rm_saleflow.oper_id, t_rm_saleflow.sale_qnty, t_rm_saleflow.sale_money,t_rm_saleflow.item_no, (source_price - sale_price) * sale_qnty as salequt,t_rm_saleflow.sale_money from t_rm_saleflow where flow_no  in (" + strS + ") ");
-            saleflowold = saleflow;
-            if (saleflowold == null)
+            DataTable saleflow = Obtain("select posid, flow_no,sell_way, CASE a.sell_way WHEN 'B' THEN -sale_qnty ELSE sale_qnty END sale_qnty, CONVERT(varchar(100), oper_date, 112) as oper_day,REPLACE(CONVERT(varchar(100),oper_date, 8),':','') as oper_time,oper_id,"
+                                        + "CASE a.sell_way WHEN 'B' THEN - sale_qnty ELSE sale_qnty END sale_qnty,"
+                                        + "CASE A.sell_way WHEN 'B' THEN - sale_money ELSE sale_money END sale_money,"
+                                        + "item_no,(source_price - sale_price) * sale_qnty as salequt,"
+                                        + "(select sum(CASE sell_way WHEN 'B' THEN - sale_money ELSE sale_money END) from t_rm_saleflow where flow_no in (a.flow_no)) as sale_moneyCount,"
+                                        + "(select sum(CASE sell_way WHEN 'B' THEN - sale_qnty ELSE sale_qnty END) from t_rm_saleflow where flow_no in (a.flow_no)) as sale_qntyCount"
+                                        + " FROM t_rm_saleflow  a"
+                                        + " WHERE flow_no  in (" + strS + ") ");
+            if (saleflow == null)
             {
                 dispatcherTimer.Start();
 
                 return;
             }
-            //去重
-            for (int i = saleflowold.Rows.Count - 2; i > 0; i--)
-            {
-                DataRow[] rows = saleflowold.Select(string.Format("{0}='{1}'", "flow_no", saleflowold.Rows[i]["flow_no"]));
-                if (rows.Length > 1)
-                {
-                    saleflowold.Rows.RemoveAt(i);
-                }
-            }
+
             List<SalesModel> list = new List<SalesModel>();
 
             list = ConvertToModel(saleflow);
 
             foreach (DataRow payRow in payflow.Rows)
             {
-                foreach (DataRow saleRow in saleflowold.Rows)
+                string oper_id = "";
+                string oper_day = "";
+                string oper_time = "";
+                string posid = "";
+                decimal sale_moneyCount = 0;
+                decimal sale_qnty = 0;
+                decimal sale_money = 0;
+
+                string sell_way = "";
+                decimal sale_qntyCount = 0;
+                decimal salequt = 0;
+                ArrayOfEsalesitem item = new ArrayOfEsalesitem();
+
+                foreach (DataRow saleRow in saleflow.Rows)
                 {
                     if (payRow["flow_no"].ToString() == saleRow["flow_no"].ToString() && saleRow["sell_way"].ToString() != "C")
                     {
-                        esaleshdr sales = new esaleshdr();
+                        oper_id = saleRow["oper_id"].ToString();
+                        oper_day = saleRow["oper_day"].ToString();
+                        oper_time = saleRow["oper_time"].ToString();
+                        posid = saleRow["posid"].ToString();
+                        sale_moneyCount = Convert.ToDecimal(saleRow["sale_moneyCount"]);
+                        sale_qnty = Convert.ToDecimal(saleRow["sale_qnty"]);
+                        sale_money = Convert.ToDecimal(saleRow["sale_money"]);
+                        sell_way = saleRow["sell_way"].ToString();
+                        sale_qntyCount = Convert.ToInt32(saleRow["sale_qntyCount"]);
+                        salequt = Convert.ToDecimal(saleRow["salequt"]);
 
-                        sales.mallid = ConfigurationManager.AppSettings["mallid"];//商场编号
-                        sales.txdate_yyyymmdd = saleRow["oper_day"].ToString();
+                        esalesitem items = new esalesitem();//销售单货品明细表 多
+                        items.itemcode = ConfigurationManager.AppSettings["storecode"].ToString() + "1"; ; //"01L501N011";货号
+                        items.lineno = Convert.ToInt32(ConfigurationManager.AppSettings["lineno"]) + 1;
+                        items.bonusearn = 0;
+                        items.discountamount = salequt;
+                        items.extendparam = "";
+                        items.salesitemremark = "";
 
-                        sales.txtime_hhmmss = saleRow["oper_time"].ToString();
-                        sales.storecode = ConfigurationManager.AppSettings["storecode"].ToString();
-                        if (saleRow["posid"].ToString() == "")
+                        //数量
+                        items.qty = sale_qnty;
+                        //单货品金额
+                        items.netamount = sale_money;
+
+                        using (var fs = new FileStream(DateTime.Now.ToString("yyyyMMdd") + "DetailData.txt", FileMode.Append))
+                        using (StreamWriter streamWriter = new StreamWriter(fs))
                         {
-                            sales.tillid = "01";//?
+                            streamWriter.Write("\r\n");//换行
+
+                            streamWriter.Write("行号：" + items.lineno + ",商品编号：" + items.itemcode + ",数量：" + items.qty + ",折扣金额：" + items.discountamount + ",净金额:" + items.netamount + ",积分：" + items.bonusearn + ",销售单号：" + payRow["flow_no"].ToString());
+                            streamWriter.Write("\r\n");
+                            streamWriter.Write("\r\n");//换行
+                                                       //关闭此文件
                         }
-                        else
+                        Configuration lineno = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                        lineno.AppSettings.Settings["lineno"].Value = items.lineno.ToString();
+                        lineno.Save();
+                        ConfigurationManager.RefreshSection("appSettings");
+
+                        item.Add(items);
+                    }
+
+                }
+                //销售
+                esaleshdr sales = new esaleshdr();
+
+                sales.mallid = ConfigurationManager.AppSettings["mallid"];//商场编号
+                sales.txdate_yyyymmdd = oper_day;
+
+                sales.txtime_hhmmss = oper_time;
+                sales.storecode = ConfigurationManager.AppSettings["storecode"].ToString();
+                if (posid.ToString() == "")
+                {
+                    sales.tillid = "01";//?
+                }
+                else
+                {
+                    sales.tillid = posid;//?
+                }
+                sales.txdocno = payRow["flow_no"].ToString();//单号
+                sales.cashier = oper_id;
+                sales.vipcode = payRow["vip_no"].ToString();
+                sales.salesman = payRow["sale_man"].ToString();
+                string flow_no = payRow["flow_no"].ToString();
+
+                ArrayOfEsalestender enderList = new ArrayOfEsalestender();
+                //付款信息
+                esalestender esals = new esalestender();
+                esals.lineno = Convert.ToInt32(ConfigurationManager.AppSettings["lineno1"]) + 1;
+                esals.tendercode = "CH";
+                //支付金额
+                esals.payamount = sale_moneyCount;
+                esals.baseamount = sale_moneyCount;
+
+
+                esals.excessamount = 0;
+                esals.extendparam = "";
+                esals.remark = "";
+                enderList.Add(esals);
+                Configuration lineno1 = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                lineno1.AppSettings.Settings["lineno1"].Value = esals.lineno.ToString();
+                lineno1.Save();
+                decimal qty = 0;
+
+                //净数量
+                sales.netqty = sale_qntyCount;
+                //销售总额
+                sales.netamount = sale_moneyCount;
+
+                sales.extendparam = "";
+
+                postesalescreaterequest postsale = new postesalescreaterequest();
+                postsale.header = header;
+                postsale.esalesitems = item;
+                postsale.esalestenders = enderList;
+                postsale.esalestotal = sales;
+
+                postesalescreateRequest1Body body = new postesalescreateRequest1Body();
+                body.astr_request = postsale;
+
+                postesalescreateRequest1 request = new postesalescreateRequest1();
+                request.Body = body;
+
+                salesSoapClient salesCreate = new salesSoapClient();
+
+                try
+                {
+                    postesalescreateresponse respone = new postesalescreateresponse();
+                    respone = salesCreate.postesalescreate(postsale);
+
+                    //返回码
+                    short code = respone.header.responsecode;
+                    //错误信息
+                    string str = respone.header.responsemessage;
+
+                    if (code == 0 || code == 1000)
+                    {
+                        int num = 0;
+
+                        foreach (DataRow payfRows in payflow.Rows)
                         {
-                            sales.tillid = saleRow["posid"].ToString();//?
-                        }
-                        sales.txdocno = payRow["flow_no"].ToString();
-                        sales.cashier = saleRow["oper_id"].ToString();
-                        sales.vipcode = payRow["vip_no"].ToString();
-                        sales.salesman = payRow["sale_man"].ToString();
-                        string flow_no = payRow["flow_no"].ToString();
-                        decimal net = list.Where(u => u.flow_no == flow_no).Count();
-
-                        ArrayOfEsalestender enderList = new ArrayOfEsalestender();
-                        ArrayOfEsalesitem item = new ArrayOfEsalesitem();
-
-                        foreach (DataRow saleflowitem in saleflow.Rows)
-                        {
-                            esalestender esals = new esalestender();
-                            esals.tendercode = "CH";
-                            esals.payamount = Convert.ToInt32(payRow["pay_amount"]);
-                            esals.baseamount = Convert.ToInt32(payRow["pay_amount"]);
-                            esals.excessamount = 0;
-                            esals.extendparam = "";
-                            esals.remark = "";
-                            enderList.Add(esals);
-
-                            esalesitem items = new esalesitem();//销售单货品明细表 多
-                            items.itemcode = ConfigurationManager.AppSettings["storecode"].ToString() + "1"; ; //"01L501N011";货号
-                            items.bonusearn = 0;
-                            items.discountamount = 0;
-                            items.extendparam = "";
-                            items.salesitemremark = "";
-                            if (saleflowitem["sell_way"].ToString() == "A")
+                            if (Convert.ToInt32(payfRows["com_no"]) > num)
                             {
-                                items.qty = Convert.ToInt32(saleflowitem["sale_qnty"]);
-                                items.netamount = Convert.ToInt32(saleflowitem["salequt"]);
+                                num = Convert.ToInt32(payfRows["com_no"]);
                             }
-                            else if (saleflowitem["sell_way"].ToString() == "B")
-                            {
-                                items.qty = -Convert.ToInt32(saleflowitem["sale_qnty"]);
-                                items.netamount = -Convert.ToInt32(saleflowitem["salequt"]);
-                            }
-                            item.Add(items);
+                            Configuration com_no = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                            com_no.AppSettings.Settings["com_no"].Value = num.ToString();
+                            com_no.Save();
 
-                        }
-                        if (saleRow["sell_way"].ToString() == "A")
-                        {
-                            //总数量
-                            sales.netqty = net;
-                            //总金额 
-                            sales.netamount = Convert.ToInt32(payRow["pay_amount"]);
-                        }
-                        else if (saleRow["sell_way"].ToString() == "B")
-                        {
-                            sales.netqty = net;
-                            sales.netamount = -Convert.ToInt32(saleRow["sale_money"]);
-                        }
-
-                        sales.extendparam = "";
-
-                        postesalescreaterequest postsale = new postesalescreaterequest();
-                        postsale.header = header;
-                        postsale.esalesitems = item;
-                        postsale.esalestenders = enderList;
-                        postsale.esalestotal = sales;
-
-                        postesalescreateRequest1Body body = new postesalescreateRequest1Body();
-                        body.astr_request = postsale;
-
-                        postesalescreateRequest1 request = new postesalescreateRequest1();
-                        request.Body = body;
-
-                        salesSoapClient salesCreate = new salesSoapClient();
-
-                        try
-                        {
-                            postesalescreateresponse respone = new postesalescreateresponse();
-                            respone = salesCreate.postesalescreate(postsale);
-
-                            short code = respone.header.responsecode;
-                            string str = respone.header.responsemessage;
-
-                            if (code == 0 || code == 1000)
-                            {
-                                int num = 0;
-
-                                foreach (DataRow payfRows in payflow.Rows)
-                                {
-                                    if (Convert.ToInt32(payfRows["com_no"]) > num)
-                                    {
-                                        num = Convert.ToInt32(payfRows["com_no"]);
-                                    }
-                                    Configuration com_no = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                                    com_no.AppSettings.Settings["com_no"].Value = num.ToString();
-                                    com_no.Save();
-
-                                }
-                            }
-                            if (code != 1000)
-                            {
-                                //保存日志
-                                Save(DateTime.Now.ToString("yyyyMMdd") + "Log.txt", code.ToString(), str, flow_no);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            //判断是否是网络问题 是休息一分钟后继续执行
-                            if (ex.ToString().Contains("没有终结点在侦听可以接受消息"))
-                            {
-                                Thread.Sleep(60000);//一分钟
-                                Send(sender, e);
-                            }
                         }
                     }
+
+                    //保存日志
+                    Save(DateTime.Now.ToString("yyyyMMdd") + "Log.txt", code.ToString(), str, flow_no);
+                    using (var fs = new FileStream(DateTime.Now.ToString("yyyyMMdd") + "Data.txt", FileMode.Append))
+                    using (StreamWriter streamWriter = new StreamWriter(fs))
+                    {
+                        streamWriter.Write("\r\n");//换行
+
+                        streamWriter.Write("商场编号：" + sales.mallid + "   交易日期：" + sales.txdate_yyyymmdd + "   交易时间：" + sales.txtime_hhmmss + "   店铺号：" + sales.storecode + "   收银机号：" + sales.tillid + "   销售单号：" + sales.txdocno + "   收银员编号：" + sales.cashier + "   VIP卡号：" + sales.vipcode + "   销售员：" + sales.salesman + "   付款金额：" + sale_moneyCount + "   货号：" + ConfigurationManager.AppSettings["storecode"].ToString() + "1" + "   数量：" + sale_qntyCount + "   折扣金额：0");
+                        streamWriter.Write("\r\n");
+                        streamWriter.Write("\r\n");//换行
+
+                        //关闭此文件
+                    }
                 }
+                catch (Exception ex)
+                {
+                    //判断是否是网络问题 是休息一分钟后继续执行
+                    if (ex.ToString().Contains("没有终结点在侦听可以接受消息"))
+                    {
+                        Thread.Sleep(60000);//一分钟
+                        Send(sender, e);
+                    }
+                    throw ex;
+                }
+                item.Clear();
+                oper_id = "";
+                oper_day = "";
+                oper_time = "";
+                posid = "";
+                sale_moneyCount = 0;
+                sale_qnty = 0;
+                sale_money = 0;
+
+                sell_way = "";
+                sale_qntyCount = 0;
+                salequt = 0;
             }
             Infomation(sender, e);
-           
+
             dispatcherTimer.Start();
         }
         //获取数据
@@ -364,11 +418,18 @@ namespace WpfApp1
                 streamWriter.Write("\r\n");//换行
                 if (code == "0")
                 {
-                    streamWriter.Write("销售单号：" + flowNo + "   传送时间：" + DateTime.Now.ToString("hh:mm:ss")+ "   传送成功");
+                    streamWriter.Write("销售单号：" + flowNo + "   传送时间：" + DateTime.Now.ToString("HH:mm:ss") + "   传送成功");
                 }
-                else
+                else 
                 {
-                    streamWriter.Write("销售单号：" + flowNo + "   传送时间：" + DateTime.Now.ToString("hh:mm:ss") + "   传送失败");
+                    if (code != "1000")
+                    {
+                        Configuration error = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                        error.AppSettings.Settings["error"].Value += flowNo + ",";
+                        error.Save();
+                        ConfigurationManager.RefreshSection("appSettings");
+                    }
+                    streamWriter.Write("销售单号：" + flowNo + "   传送时间：" + DateTime.Now.ToString("HH:mm:ss") + "   传送失败" + "返回Code" + code + "错误信息" + str);
                 }
                 streamWriter.Write("\r\n");//换行
 

@@ -6,6 +6,7 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.ServiceModel.Configuration;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -311,7 +312,9 @@ namespace WpfApp1
                 postesalescreateRequest1 request = new postesalescreateRequest1();
                 request.Body = body;
 
-                salesSoapClient salesCreate = new salesSoapClient();
+                //string endpointConfigurationName = GetEndpointAddress("salesSoap");
+                string remoteAddress = ConfigurationManager.AppSettings["address"].ToString();
+                salesSoapClient salesCreate = new salesSoapClient("salesSoap", remoteAddress);
 
                 try
                 {
@@ -514,6 +517,21 @@ namespace WpfApp1
             Prompt.Content = "请点击启动导入数据";
             stopButton.IsEnabled = false;
             dispatcherTimer.Stop();
+        }
+           /// <summary>
+          /// 读取EndpointAddress
+          /// </summary>
+          /// <param name="endpointName"></param>
+          /// <returns></returns>
+        private string GetEndpointAddress(string endpointName)
+        {
+            ClientSection clientSection = ConfigurationManager.GetSection("system.serviceModel/client") as ClientSection;
+            foreach (ChannelEndpointElement item in clientSection.Endpoints)
+            {
+                if (item.Name == endpointName)
+                    return item.Address.ToString();
+            }
+            return string.Empty;
         }
     }
 }
